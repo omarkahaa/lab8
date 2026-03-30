@@ -9,7 +9,7 @@ NUM_SQUARES = 100
 MIN_SIZE = 10
 MAX_SIZE = 40
 GLOBAL_MAX_SPEED = 6
-JITTER_AMOUNT = 0.2
+ANGLE_JITTER = 0.15
 BACKGROUND_COLOR = (255, 255, 255)
 FPS = 60
 
@@ -20,8 +20,7 @@ class Square:
         self.x = random.uniform(0, WIDTH - self.size)
         self.y = random.uniform(0, HEIGHT - self.size)
 
-        # Bigger square = slower square
-        self.max_speed = min(GLOBAL_MAX_SPEED, GLOBAL_MAX_SPEED * (MIN_SIZE / self.size))
+        self.max_speed = GLOBAL_MAX_SPEED * (MIN_SIZE / self.size)
 
         angle = random.uniform(0, 2 * math.pi)
         speed = random.uniform(1, self.max_speed)
@@ -35,8 +34,14 @@ class Square:
         )
 
     def apply_jitter(self):
-        self.dx += random.uniform(-JITTER_AMOUNT, JITTER_AMOUNT)
-        self.dy += random.uniform(-JITTER_AMOUNT, JITTER_AMOUNT)
+        speed = math.hypot(self.dx, self.dy)
+        angle = math.atan2(self.dy, self.dx)
+
+        angle += random.uniform(-ANGLE_JITTER, ANGLE_JITTER)
+
+        self.dx = math.cos(angle) * speed
+        self.dy = math.sin(angle) * speed
+
         self.limit_speed()
 
     def limit_speed(self):
