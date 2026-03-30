@@ -1,6 +1,7 @@
-import pygame
-import random
 import math
+import random
+
+import pygame
 
 WIDTH = 800
 HEIGHT = 600
@@ -10,18 +11,20 @@ MAX_SIZE = 40
 GLOBAL_MAX_SPEED = 6
 JITTER_AMOUNT = 0.2
 BACKGROUND_COLOR = (255, 255, 255)
+FPS = 60
 
 
 class Square:
     def __init__(self):
         self.size = random.randint(MIN_SIZE, MAX_SIZE)
-        self.x = random.randint(0, WIDTH - self.size)
-        self.y = random.randint(0, HEIGHT - self.size)
+        self.x = random.uniform(0, WIDTH - self.size)
+        self.y = random.uniform(0, HEIGHT - self.size)
 
-        self.max_speed = GLOBAL_MAX_SPEED * (MAX_SIZE / self.size)
+        # Bigger square = slower square
+        self.max_speed = min(GLOBAL_MAX_SPEED, GLOBAL_MAX_SPEED * (MIN_SIZE / self.size))
 
         angle = random.uniform(0, 2 * math.pi)
-        speed = random.uniform(1, min(self.max_speed, GLOBAL_MAX_SPEED))
+        speed = random.uniform(1, self.max_speed)
         self.dx = math.cos(angle) * speed
         self.dy = math.sin(angle) * speed
 
@@ -38,10 +41,8 @@ class Square:
 
     def limit_speed(self):
         speed = math.hypot(self.dx, self.dy)
-        allowed_speed = min(self.max_speed, GLOBAL_MAX_SPEED)
-
-        if speed > allowed_speed and speed != 0:
-            scale = allowed_speed / speed
+        if speed > self.max_speed and speed != 0:
+            scale = self.max_speed / speed
             self.dx *= scale
             self.dy *= scale
 
@@ -51,16 +52,26 @@ class Square:
         self.x += self.dx
         self.y += self.dy
 
-        if self.x <= 0 or self.x + self.size >= WIDTH:
+        if self.x <= 0:
+            self.x = 0
             self.dx *= -1
-            self.x = max(0, min(self.x, WIDTH - self.size))
+        elif self.x + self.size >= WIDTH:
+            self.x = WIDTH - self.size
+            self.dx *= -1
 
-        if self.y <= 0 or self.y + self.size >= HEIGHT:
+        if self.y <= 0:
+            self.y = 0
             self.dy *= -1
-            self.y = max(0, min(self.y, HEIGHT - self.size))
+        elif self.y + self.size >= HEIGHT:
+            self.y = HEIGHT - self.size
+            self.dy *= -1
 
     def draw(self, screen):
-        pygame.draw.rect(screen, self.color, (int(self.x), int(self.y), self.size, self.size))
+        pygame.draw.rect(
+            screen,
+            self.color,
+            (int(self.x), int(self.y), self.size, self.size),
+        )
 
 
 def main():
@@ -68,6 +79,7 @@ def main():
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
     pygame.display.set_caption("Moving Squares")
     clock = pygame.time.Clock()
+    font = pygame.font.SysFont(None, 30)
 
     squares = [Square() for _ in range(NUM_SQUARES)]
 
@@ -83,8 +95,11 @@ def main():
             square.move()
             square.draw(screen)
 
+        fps_text = font.render(f"FPS: {int(clock.get_fps())}", True, (0, 0, 0))
+        screen.blit(fps_text, (10, 10))
+
         pygame.display.flip()
-        clock.tick(60)
+        clock.tick(FPS)
 
     pygame.quit()
 
