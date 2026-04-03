@@ -1,0 +1,72 @@
+# JOURNAL
+
+
+### Entry 1
+Prompt: Help me implement a simple pygame application that displays squares moving around the screen.
+
+Copilot gave me a first working version of the pygame project with the window, the moving squares, and the basic drawing logic.
+
+This was useful because it gave me a clean starting point for lab8 that I could run first and then improve step by step.
+
+### Entry 2
+Prompt: Add an FPS counter displayed on the screen.
+
+Copilot added an FPS counter using the pygame clock and font rendering.
+
+This was useful because I could directly see how the program was running while testing the animation.
+
+### Entry 3
+Prompt: Change the movement so it uses a speed vector.
+
+Copilot changed the movement so each square used horizontal and vertical speed values.
+
+This was useful because the movement became easier to manage and it also made the later changes easier to add.
+
+### Entry 4
+Prompt: Make each square change direction slightly over time using jitter.
+
+Copilot added a small random change in direction over time.
+
+This was useful because the squares stopped moving in a way that looked too rigid and the animation felt more natural.
+
+### Entry 5
+Prompt: Improve the movement by combining jitter with normal bouncing at the borders.
+
+Copilot adjusted the movement so the squares no longer moved in perfectly straight lines all the time, while still bouncing normally at the borders.
+
+This was useful because the movement looked less rigid and more natural.
+
+### Entry 6
+Prompt: Add random direction jitter so each square changes direction slightly over time.
+
+Copilot updated the movement so each square’s direction changes a little while it is moving.
+
+This was useful because it matched the jitter feature asked for in the lab and made the motion look less rigid on screen.
+
+### Entry 7
+Prompt: Make the maximum speed of each square depend on its size so that bigger squares move slower.
+
+Copilot added a max speed for each square based on its size.
+
+This was useful because it matched the lab requirement and also made the movement more interesting visually.
+
+### Entry 8
+Prompt: Increase the number of squares to 100 and add global constants for minimum size, maximum size, and maximum speed.
+
+Copilot updated the project constants so the program used 100 squares and shared size and speed settings.
+
+This was useful because it matched the extension requested in the lab and made the code easier to tune.
+
+### Entry 9
+Prompt: Keep the squares inside the window and make them bounce correctly on the borders.
+
+Copilot updated the border collision logic so the squares stayed inside the window and bounced back correctly.
+
+This was useful because it fixed the edge behavior and made the animation cleaner.
+
+### Entry 10
+Prompt: Create a requirements.txt file for this project and a simple README.md with installation and run instructions.
+
+Copilot helped create the dependency file and the first README.
+
+This was useful because the project then had the basic files needed to run it and document it properly.
