@@ -1,6 +1,5 @@
 # lab8-pygame
-
-This project is a simple pygame application that displays 10 squares moving around the window.
+This project is a simple pygame application that displays 100 squares moving around the window.
 
 ## Requirements
 - Python 3
