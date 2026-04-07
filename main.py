@@ -13,6 +13,9 @@ ANGLE_JITTER = 0.15
 BACKGROUND_COLOR = (255, 255, 255)
 FPS = 60
 
+FLEE_DISTANCE = 100
+FLEE_FORCE = 0.2
+
 
 class Square:
     def __init__(self):
@@ -33,6 +36,12 @@ class Square:
             random.randint(50, 255),
         )
 
+    def center_x(self):
+        return self.x + self.size / 2
+
+    def center_y(self):
+        return self.y + self.size / 2
+
     def apply_jitter(self):
         speed = math.hypot(self.dx, self.dy)
         angle = math.atan2(self.dy, self.dx)
@@ -42,8 +51,6 @@ class Square:
         self.dx = math.cos(angle) * speed
         self.dy = math.sin(angle) * speed
 
-        self.limit_speed()
-
     def limit_speed(self):
         speed = math.hypot(self.dx, self.dy)
         if speed > self.max_speed and speed != 0:
@@ -51,8 +58,26 @@ class Square:
             self.dx *= scale
             self.dy *= scale
 
-    def move(self):
+    def flee(self, squares):
+        for other in squares:
+            if other is self:
+                continue
+
+            if self.size >= other.size:
+                continue
+
+            diff_x = self.center_x() - other.center_x()
+            diff_y = self.center_y() - other.center_y()
+            distance = math.hypot(diff_x, diff_y)
+
+            if 0 < distance < FLEE_DISTANCE:
+                self.dx += (diff_x / distance) * FLEE_FORCE
+                self.dy += (diff_y / distance) * FLEE_FORCE
+
+    def move(self, squares):
         self.apply_jitter()
+        self.flee(squares)
+        self.limit_speed()
 
         self.x += self.dx
         self.y += self.dy
@@ -97,7 +122,7 @@ def main():
         screen.fill(BACKGROUND_COLOR)
 
         for square in squares:
-            square.move()
+            square.move(squares)
             square.draw(screen)
 
         fps_text = font.render(f"FPS: {int(clock.get_fps())}", True, (0, 0, 0))
