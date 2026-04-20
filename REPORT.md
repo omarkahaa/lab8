@@ -1,7 +1,7 @@
 # REPORT
 
 ## Project
-lab8-pygame
+lab8
 
 ## Objective
 The goal of this lab was to create a simple pygame application with moving squares, then extend it by improving the movement and structure of the program.
@@ -25,6 +25,7 @@ I added global constants for:
 - FPS
 - flee distance
 - flee force
+- minimum and maximum life span
 
 I also implemented a max speed rule for each square based on its size, so that larger squares move more slowly than smaller ones. This follows the lab extension and makes the animation more varied.
 
@@ -33,6 +34,12 @@ Another feature I added was direction jitter. Each square changes direction slig
 I also added a flee behavior. Smaller squares check nearby bigger squares and move away from them when they are close enough. I implemented this using the movement vectors already used in the project (`dx` and `dy`). This keeps the behavior simple and consistent with the rest of the code. The movement still stays partly random because the jitter is still applied at each update.
 
 The squares bounce when they hit the borders of the window, and I also added an FPS counter displayed on the screen.
+
+I added a life span and rebirth feature. Each square is given a random life span between 30 and 180 seconds. The square tracks its age using a timer that increments with `dt` each frame. When its age exceeds its life span, it is replaced by a new square with fresh random values.
+
+I also added time-based movement. Instead of moving by a fixed amount per frame, each square now moves based on the elapsed time (`dt`), which makes the movement more consistent across different frame rates.
+
+I added type hints to all methods and functions.
 
 ## Program structure
 The project is organized around a `Square` class.
@@ -45,11 +52,15 @@ The class handles:
 - speed limiting
 - drawing
 
+The class also stores the life span and age of each square.
+
 The rest of the program is handled in the `main()` function, which:
 - initializes pygame
 - creates the window
 - creates all squares
 - runs the main loop
+- updates each square's age
+- replaces dead squares with new ones
 - updates movement
 - draws the objects
 - updates the display
@@ -64,6 +75,10 @@ I used `dx` and `dy` values to represent movement, because this made it easier t
 I kept global constants at the top of the file so the project could be adjusted more easily without changing the logic everywhere.
 
 For the flee behavior, I chose to use vectors instead of angles. Since the program already uses horizontal and vertical speed values, it was simpler to compute the direction away from a bigger square and add a small force directly to `dx` and `dy`.
+
+For the life span feature, I used an `age` float that increments by `dt` each frame and compared it against a random `life_span` value. I used `range(len(squares))` in the main loop instead of a regular for loop so I could replace dead squares by index.
+
+For time-based movement, I multiplied `dx` and `dy` by `dt * FPS` so the speed stays more consistent across different frame rates.
 
 ## Difficulties
 The main difficulty was making the movement look random without making it look chaotic. Another difficulty was keeping the squares inside the screen while still allowing them to move smoothly.
@@ -80,12 +95,14 @@ This project helped me better understand:
 - border collision handling
 - organizing code with a class
 - how small movement changes affect the final behavior on screen
+- how to use delta time for more frame-rate independent movement
+- how to manage object lifetimes in an animation loop
+- how type hints improve code readability
 
 I also learned that even a small graphical project becomes easier to manage when the logic is split into clear methods.
 
 The flee feature also helped me practice using distances and vectors in a simple animation.
 
 ## Conclusion
-The final version is a working pygame project that goes beyond the basic moving squares version. It includes 100 animated squares, speed depending on size, direction jitter, border bouncing, FPS display, and a flee behavior where smaller squares move away from bigger nearby squares.
+The final version includes 100 animated squares, speed depending on size, direction jitter, border bouncing, FPS display, flee behavior, time-based movement, type hints, and a life span and rebirth system where each square dies and is replaced after a random amount of time.
 
-The project also helped me practice using Copilot in a more controlled way, by working feature by feature instead of trying to generate everything at once.
