@@ -1,124 +1,99 @@
 # REPORT
 
 ## Project
-lab8
+lab8-pygame
 
 ## Objective
-The goal of this lab was to create a simple pygame application with moving squares, then extend it by improving the movement and structure of the program.
+The goal of this project was to create a pygame animation with moving squares and improve it by adding more behaviors and interactions between them.
 
 ## What I implemented
-I created a pygame application that opens a window and displays 100 squares moving on the screen.
+I created a pygame program that opens a window and displays 100 squares moving on the screen.
 
 Each square has:
 - a random size
 - a random position
 - a random color
-- a movement direction based on horizontal and vertical speed values
+- a movement direction using `dx` and `dy`
 
-I added global constants for:
-- window size
-- number of squares
-- minimum square size
-- maximum square size
-- global maximum speed
-- angle jitter
-- FPS
-- flee distance
-- flee force
-- minimum and maximum life span
+I used constants for the window size, number of squares, square sizes, speed, jitter, fleeing, chasing, life span, and FPS.
 
-I also implemented a max speed rule for each square based on its size, so that larger squares move more slowly than smaller ones. This follows the lab extension and makes the animation more varied.
+I also made bigger squares slower than smaller ones by giving each square a maximum speed based on its size.
 
-Another feature I added was direction jitter. Each square changes direction slightly over time, which makes the movement less rigid and more natural than only moving in straight lines.
+## Chasing behavior
+One of the new features I added is chasing.
 
-I also added a flee behavior. Smaller squares check nearby bigger squares and move away from them when they are close enough. I implemented this using the movement vectors already used in the project (`dx` and `dy`). This keeps the behavior simple and consistent with the rest of the code. The movement still stays partly random because the jitter is still applied at each update.
+The idea is simple:
+- if a square is bigger than another square
+- and the smaller square is close enough
+- then the bigger square moves toward it
 
-The squares bounce when they hit the borders of the window, and I also added an FPS counter displayed on the screen.
+To do this, I compare the positions of the two squares.
+If the smaller square is more to the right, I increase `dx`.
+If it is more to the left, I decrease `dx`.
+I do the same with `dy` for up and down.
 
-I added a life span and rebirth feature. Each square is given a random life span between 30 and 180 seconds. The square tracks its age using a timer that increments with `dt` each frame. When its age exceeds its life span, it is replaced by a new square with fresh random values.
+I kept this implementation simple on purpose so it matches the rest of my code and stays easy to understand.
 
-I also added time-based movement. Instead of moving by a fixed amount per frame, each square now moves based on the elapsed time (`dt`), which makes the movement more consistent across different frame rates.
+## Fleeing behavior
+I also kept the fleeing behavior.
 
-I added type hints to all methods and functions.
+If a square is smaller than another nearby square, it moves away from it.
 
-## Program structure
-The project is organized around a `Square` class.
+So now the behavior is:
+- small squares flee
+- big squares chase
 
-The class handles:
-- square creation
-- movement
-- random direction jitter
-- flee behavior
-- speed limiting
-- drawing
+This makes the animation more interesting because the squares react differently depending on their size.
 
-The class also stores the life span and age of each square.
+## Random movement
+I kept the jitter in the program so the squares do not move in perfectly straight lines.
 
-The rest of the program is handled in the `main()` function, which:
-- initializes pygame
-- creates the window
-- creates all squares
-- runs the main loop
-- updates each square's age
-- replaces dead squares with new ones
-- updates movement
-- draws the objects
-- updates the display
-- controls frame rate
-- quits pygame when the program is closed
+At each frame, their angle changes a little randomly.
+This makes the movement look more natural.
 
-## Main choices
-I chose to use a class because it made the code easier to read and easier to extend. It also helped keep the square behavior grouped in one place.
+## Life span and rebirth
+Each square has a random life span between 3 and 9 seconds.
 
-I used `dx` and `dy` values to represent movement, because this made it easier to add jitter, speed control, and the flee behavior.
+Its age increases during the game loop.
+When it reaches the end of its life span, it is replaced by a new square with new random values.
 
-I kept global constants at the top of the file so the project could be adjusted more easily without changing the logic everywhere.
+This keeps the animation changing over time.
 
-For the flee behavior, I chose to use vectors instead of angles. Since the program already uses horizontal and vertical speed values, it was simpler to compute the direction away from a bigger square and add a small force directly to `dx` and `dy`.
+## FPS display
+I display the FPS in the top-left corner of the screen.
 
-For the life span feature, I used an `age` float that increments by `dt` each frame and compared it against a random `life_span` value. I used `range(len(squares))` in the main loop instead of a regular for loop so I could replace dead squares by index.
+This helped me test the program and see if it was running correctly.
 
-For time-based movement, I multiplied `dx` and `dy` by `dt * FPS` so the speed stays more consistent across different frame rates.
+## How I approached it
+I tried to keep the code simple and reuse what I already had.
 
-## Difficulties
-The main difficulty was making the movement look random without making it look chaotic. Another difficulty was keeping the squares inside the screen while still allowing them to move smoothly.
+For the chasing feature, I used the same general structure as the fleeing feature:
+- loop through the squares
+- compare sizes
+- check the distance
+- update movement
 
-I also had to be careful that the jitter changed direction without breaking the speed limit rule.
+Instead of building a completely new system, I added the new behavior on top of the existing movement.
 
-For the flee behavior, the difficulty was keeping it simple enough to explain while still making the smaller squares react visibly to bigger ones.
+## Result
+The final animation has several behaviors working together:
+- random movement
+- border bounce
+- fleeing
+- chasing
+- rebirth after life span
+
+Because of this, the squares do not all move the same way and the animation feels more alive.
 
 ## What I learned
-This project helped me better understand:
-- the pygame application loop
-- frame-by-frame updates
-- basic animation logic
-- border collision handling
-- organizing code with a class
-- how small movement changes affect the final behavior on screen
-- how to use delta time for more frame-rate independent movement
-- how to manage object lifetimes in an animation loop
-- how type hints improve code readability
-
-I also learned that even a small graphical project becomes easier to manage when the logic is split into clear methods.
-
-The flee feature also helped me practice using distances and vectors in a simple animation.
+With this project, I practiced:
+- using classes in Python
+- working with pygame
+- updating many objects in a loop
+- controlling movement with `dx` and `dy`
+- adding behaviors step by step
 
 ## Conclusion
-The final version includes 100 animated squares, speed depending on size, direction jitter, border bouncing, FPS display, flee behavior, time-based movement, type hints, and a life span and rebirth system where each square dies and is replaced after a random amount of time.
+This version of the project is more dynamic than the first one.
 
-## Chasing behavior idea
-
-For the chasing feature, I wanted to do something simple and close to the flee feature I already had.
-
-My idea was that I did not need to create a completely new system because the code already had the loop on the squares, the size comparison, and the movement with `dx` and `dy`.
-
-So I used the same logic as before, but this time for bigger squares going toward smaller ones.
-
-I check the other squares, and if one is smaller and close enough, I compare its position with the current square.
-If it is on the right, I increase `dx`.
-If it is on the left, I decrease `dx`.
-I do the same for `dy` depending on whether it is above or below.
-
-I kept it simple on purpose because it was enough for the behavior I wanted and it matches the style of the rest of my code.
-
-I also kept the jitter, so even when a square is chasing another one, the movement still looks a bit natural and not too exact.
+Adding chasing made the squares interact more with each other, while still keeping the code simple and readable.
