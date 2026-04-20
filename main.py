@@ -16,8 +16,11 @@ FPS = 60
 FLEE_DISTANCE = 100
 FLEE_FORCE = 0.2
 
-MIN_LIFE = 30
-MAX_LIFE = 180
+CHASE_DISTANCE = 100
+CHASE_FORCE = 0.08
+
+MIN_LIFE = 3
+MAX_LIFE = 9
 
 
 class Square:
@@ -77,9 +80,32 @@ class Square:
                 self.dx += (diff_x / distance) * FLEE_FORCE
                 self.dy += (diff_y / distance) * FLEE_FORCE
 
+    def chase(self, squares: list["Square"]) -> None:
+        for other in squares:
+            if other is self:
+                continue
+            if self.size <= other.size:
+                continue
+
+            diff_x = other.center_x() - self.center_x()
+            diff_y = other.center_y() - self.center_y()
+            distance = math.hypot(diff_x, diff_y)
+
+            if distance < CHASE_DISTANCE:
+                if diff_x > 0:
+                    self.dx += CHASE_FORCE
+                else:
+                    self.dx -= CHASE_FORCE
+
+                if diff_y > 0:
+                    self.dy += CHASE_FORCE
+                else:
+                    self.dy -= CHASE_FORCE
+
     def move(self, squares: list["Square"], dt: float) -> None:
         self.apply_jitter()
         self.flee(squares)
+        self.chase(squares)
         self.limit_speed()
 
         self.x += self.dx * dt * FPS

@@ -106,3 +106,19 @@ The flee feature also helped me practice using distances and vectors in a simple
 ## Conclusion
 The final version includes 100 animated squares, speed depending on size, direction jitter, border bouncing, FPS display, flee behavior, time-based movement, type hints, and a life span and rebirth system where each square dies and is replaced after a random amount of time.
 
+## Chasing behavior idea
+
+For the chasing feature, I wanted to do something simple and close to the flee feature I already had.
+
+My idea was that I did not need to create a completely new system because the code already had the loop on the squares, the size comparison, and the movement with `dx` and `dy`.
+
+So I used the same logic as before, but this time for bigger squares going toward smaller ones.
+
+I check the other squares, and if one is smaller and close enough, I compare its position with the current square.
+If it is on the right, I increase `dx`.
+If it is on the left, I decrease `dx`.
+I do the same for `dy` depending on whether it is above or below.
+
+I kept it simple on purpose because it was enough for the behavior I wanted and it matches the style of the rest of my code.
+
+I also kept the jitter, so even when a square is chasing another one, the movement still looks a bit natural and not too exact.
