@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lab8 PyGame Project - Code Explorer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-bottom: 30px;
+        }
+
+        header h1 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        header p {
+            color: #666;
+            font-size: 16px;
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.2);
+        }
+
+        .card h2 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 20px;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .card h3 {
+            color: #764ba2;
+            margin-top: 15px;
+            margin-bottom: 8px;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .code-block {
+            background: #f5f5f5;
+            border-left: 3px solid #667eea;
+            padding: 12px;
+            margin: 8px 0;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            overflow-x: auto;
+            line-height: 1.4;
+        }
+
+        .tag {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            margin: 4px 4px 4px 0;
+        }
+
+        .tag.method {
+            background: #764ba2;
+        }
+
+        .tag.constant {
+            background: #f093fb;
+        }
+
+        .tag.class {
+            background: #667eea;
+        }
+
+        .file-structure {
+            margin: 15px 0;
+        }
+
+        .file-item {
+            padding: 8px;
+            border-left: 2px solid #ddd;
+            margin-left: 10px;
+            margin-bottom: 5px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+        }
+
+        .file-item.folder {
+            color: #667eea;
+            font-weight: bold;
+        }
+
+        .file-item.python {
+            color: #3776ab;
+        }
+
+        .method-list {
+            list-style: none;
+            margin: 10px 0;
+        }
+
+        .method-list li {
+            padding: 8px;
+            background: #f9f9f9;
+            margin: 5px 0;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            border-left: 2px solid #764ba2;
+            padding-left: 12px;
+        }
+
+        .constants-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin: 10px 0;
+        }
+
+        .constant-item {
+            background: #f9f9f9;
+            padding: 10px;
+            border-radius: 4px;
+            border-left: 3px solid #f093fb;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+        }
+
+        .section-full {
+            grid-column: 1 / -1;
+        }
+
+        .flow-diagram {
+            background: #f5f5f5;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 15px 0;
+            overflow-x: auto;
+        }
+
+        .flow-step {
+            display: inline-block;
+            background: white;
+            border: 2px solid #667eea;
+            padding: 12px 20px;
+            margin: 5px;
+            border-radius: 6px;
+            text-align: center;
+            min-width: 120px;
+        }
+
+        .flow-arrow {
+            display: inline-block;
+            color: #667eea;
+            font-size: 20px;
+            margin: 0 5px;
+        }
+
+        .footer {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            color: #666;
+            margin-top: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .feature-highlight {
+            background: #e8f5e9;
+            border-left: 4px solid #4caf50;
+            padding: 12px;
+            margin: 10px 0;
+            border-radius: 4px;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        .dependency {
+            display: inline-block;
+            background: #fff3e0;
+            border-left: 3px solid #ff9800;
+            padding: 6px 12px;
+            margin: 4px;
+            border-radius: 3px;
+            font-size: 12px;
+            font-family: 'Courier New', monospace;
+        }
+
+        @media (max-width: 768px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+
+            header h1 {
+                font-size: 24px;
+            }
+
+            .card h2 {
+                font-size: 18px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎮 Lab8 PyGame Project - Code Explorer</h1>
+            <p>An interactive visualization of the Moving Squares animation project with pygame</p>
+        </header>
+
+        <div class="main-grid">
+            <!-- Project Overview -->
+            <div class="card section-full">
+                <h2>📋 Project Overview</h2>
+                <p><strong>lab8-pygame</strong> is a pygame application that displays 100 animated squares moving around a window with realistic physics behaviors.</p>
+                
+                <h3>Key Features</h3>
+                <div>
+                    <div class="feature-highlight">
+                        🎯 <strong>Size-Based Speed Control</strong>: Larger squares move slower than smaller ones, creating varied animation
+                    </div>
+                    <div class="feature-highlight">
+                        🔀 <strong>Direction Jitter</strong>: Random direction changes make movement less rigid and more natural
+                    </div>
+                    <div class="feature-highlight">
+                        🏃 <strong>Flee Behavior</strong>: Smaller squares detect and move away from larger nearby squares
+                    </div>
+                    <div class="feature-highlight">
+                        ⏳ <strong>Limited Lifespan</strong>: Squares have random lifespans (30-180 seconds) and respawn when they expire
+                    </div>
+                    <div class="feature-highlight">
+                        🎨 <strong>Visual Feedback</strong>: Real-time FPS counter and colorful squares on white background
+                    </div>
+                </div>
+            </div>
+
+            <!-- File Structure -->
+            <div class="card">
+                <h2>📁 File Structure</h2>
+                <div class="file-structure">
+                    <div class="file-item folder">📦 lab8/</div>
+                    <div class="file-item python">├── main.py (150 lines)</div>
+                    <div class="file-item">├── README.md</div>
+                    <div class="file-item">├── REPORT.md</div>
+                    <div class="file-item">├── requirements.txt</div>
+                    <div class="file-item">├── JOURNAL.md</div>
+                    <div class="file-item">└── .github/</div>
+                    <div class="file-item" style="margin-left: 30px;">└── instructions/</div>
+                </div>
+                
+                <h3>Dependencies</h3>
+                <div style="margin-top: 10px;">
+                    <span class="dependency">pygame</span>
+                    <span class="dependency">math</span>
+                    <span class="dependency">random</span>
+                </div>
+            </div>
+
+            <!-- Global Constants -->
+            <div class="card">
+                <h2>⚙️ Global Constants</h2>
+                <div class="constants-grid">
+                    <div class="constant-item">WIDTH = 800</div>
+                    <div class="constant-item">HEIGHT = 600</div>
+                    <div class="constant-item">NUM_SQUARES = 100</div>
+                    <div class="constant-item">MIN_SIZE = 10</div>
+                    <div class="constant-item">MAX_SIZE = 40</div>
+                    <div class="constant-item">GLOBAL_MAX_SPEED = 6</div>
+                    <div class="constant-item">ANGLE_JITTER = 0.15</div>
+                    <div class="constant-item">BACKGROUND_COLOR = (255, 255, 255)</div>
+                    <div class="constant-item">FPS = 60</div>
+                    <div class="constant-item">FLEE_DISTANCE = 100</div>
+                    <div class="constant-item">FLEE_FORCE = 0.2</div>
+                    <div class="constant-item">MIN_LIFE = 30</div>
+                    <div class="constant-item">MAX_LIFE = 180</div>
+                </div>
+            </div>
+
+            <!-- Square Class -->
+            <div class="card">
+                <h2>🔷 Square Class</h2>
+                <p>The core class handling square entities and their behaviors.</p>
+                
+                <h3>Instance Attributes</h3>
+                <ul class="method-list">
+                    <li>size: int (10-40)</li>
+                    <li>x, y: float (position)</li>
+                    <li>dx, dy: float (velocity)</li>
+                    <li>max_speed: float (size-dependent)</li>
+                    <li>color: tuple (RGB)</li>
+                    <li>life_span: float (30-180 seconds)</li>
+                    <li>age: float (current age in seconds)</li>
+                </ul>
+            </div>
+
+            <!-- Square Methods -->
+            <div class="card">
+                <h2>⚡ Square Methods</h2>
+                
+                <h3>Core Methods</h3>
+                <ul class="method-list">
+                    <li><span class="tag method">__init__()</span> - Initialize square with random properties</li>
+                    <li><span class="tag method">move(squares)</span> - Update position with all behaviors</li>
+                    <li><span class="tag method">draw(screen)</span> - Render square to pygame screen</li>
+                </ul>
+                
+                <h3>Behavior Methods</h3>
+                <ul class="method-list">
+                    <li><span class="tag method">apply_jitter()</span> - Add random direction variation</li>
+                    <li><span class="tag method">flee(squares)</span> - Avoid larger nearby squares</li>
+                    <li><span class="tag method">limit_speed()</span> - Enforce max_speed constraint</li>
+                </ul>
+                
+                <h3>Utility Methods</h3>
+                <ul class="method-list">
+                    <li><span class="tag method">center_x()</span> - Get x-coordinate of center</li>
+                    <li><span class="tag method">center_y()</span> - Get y-coordinate of center</li>
+                </ul>
+            </div>
+
+            <!-- Method Details -->
+            <div class="card">
+                <h2>🔍 Method Implementation Details</h2>
+                
+                <h3>__init__()</h3>
+                <div class="code-block">
+Random size (10-40)<br>
+Random position within bounds<br>
+Speed ∝ 1/size<br>
+Random direction and speed
+                </div>
+                
+                <h3>apply_jitter()</h3>
+                <div class="code-block">
+Extract speed and angle<br>
+Add random variation ±0.15 rad<br>
+Recalculate dx, dy
+                </div>
+                
+                <h3>flee(squares)</h3>
+                <div class="code-block">
+For each larger nearby square:<br>
+  Calculate distance<br>
+  If distance &lt; 100px:<br>
+    Add repulsive force (0.2×)
+                </div>
+            </div>
+
+            <!-- Main Loop -->
+            <div class="card">
+                <h2>🔄 Main Loop Flow</h2>
+                <div class="flow-diagram">
+                    <div class="flow-step">Init</div>
+                    <div class="flow-arrow">→</div>
+                    <div class="flow-step">Event<br>Handle</div>
+                    <div class="flow-arrow">→</div>
+                    <div class="flow-step">Update<br>All</div>
+                    <div class="flow-arrow">→</div>
+                    <div class="flow-step">Draw<br>All</div>
+                    <div class="flow-arrow">→</div>
+                    <div class="flow-step">Display</div>
+                </div>
+                
+                <h3>Per Square Update (move)</h3>
+                <div class="flow-diagram">
+                    <div class="flow-step">Jitter</div>
+                    <div class="flow-arrow">→</div>
+                    <div class="flow-step">Flee</div>
+                    <div class="flow-arrow">→</div>
+                    <div class="flow-step">Limit<br>Speed</div>
+                    <div class="flow-arrow">→</div>
+                    <div class="flow-step">Update<br>Position</div>
+                    <div class="flow-arrow">→</div>
+                    <div class="flow-step">Bounce<br>Walls</div>
+                </div>
+            </div>
+
+            <!-- Key Algorithms -->
+            <div class="card">
+                <h2>🧮 Key Algorithms</h2>
+                
+                <h3>Speed Limiting</h3>
+                <div class="code-block">
+speed = √(dx² + dy²)<br>
+if speed > max_speed:<br>
+&nbsp;&nbsp;scale = max_speed / speed<br>
+&nbsp;&nbsp;dx *= scale<br>
+&nbsp;&nbsp;dy *= scale
+                </div>
+                
+                <h3>Distance Calculation</h3>
+                <div class="code-block">
+distance = √(Δx² + Δy²)<br>
+Uses math.hypot() for precision
+                </div>
+                
+                <h3>Flee Force Application</h3>
+                <div class="code-block">
+direction = (Δx, Δy) / distance<br>
+force = direction × FLEE_FORCE<br>
+dx += force_x<br>
+dy += force_y
+                </div>
+            </div>
+
+            <!-- Performance Characteristics -->
+            <div class="card">
+                <h2>⚡ Performance Characteristics</h2>
+                
+                <h3>Complexity Analysis</h3>
+                <ul class="method-list">
+                    <li><strong>Per Frame:</strong> O(n²) for flee checks</li>
+                    <li><strong>Per Square:</strong> O(n) flee distance checks</li>
+                    <li><strong>Target FPS:</strong> 60 (1000/60 ≈ 16.7ms per frame)</li>
+                </ul>
+                
+                <h3>Optimization Notes</h3>
+                <ul class="method-list">
+                    <li>Vectorized operations (no trigonometry in hot path)</li>
+                    <li>Early exits in flee logic</li>
+                    <li>Direct arithmetic over function calls where possible</li>
+                </ul>
+            </div>
+
+            <!-- Data Flow -->
+            <div class="card section-full">
+                <h2>📊 Data Flow Diagram</h2>
+                <div style="background: #f5f5f5; padding: 20px; border-radius: 8px; font-family: 'Courier New', monospace; font-size: 12px; overflow-x: auto;">
+<pre>┌─────────────────────────────────────────────────────────────┐
+│                   main()                                      │
+│  - Initialize pygame                                          │
+│  - Create window (800x600)                                   │
+│  - Create 100 Square instances                               │
+└─────────────────────────────────────────────────────────────┘
+                            │
+                            ▼
+┌─────────────────────────────────────────────────────────────┐
+│              Main Loop (until quit)                           │
+│  - Handle pygame events                                       │
+│  - Clear screen                                              │
+│  - For each square:                                          │
+│    └─ Age square (age += dt)                                │
+│    └─ If age >= life_span: respawn new Square               │
+│    └─ Call move(all_squares)                                │
+│    └─ Call draw(screen)                                     │
+│  - Display FPS                                              │
+│  - Update display                                           │
+└─────────────────────────────────────────────────────────────┘
+                            │
+                            ▼
+┌─────────────────────────────────────────────────────────────┐
+│           Square.move(squares) Execution                      │
+│  1. apply_jitter()      ► Change direction slightly          │
+│  2. flee(squares)       ► Avoid larger squares              │
+│  3. limit_speed()       ► Enforce speed constraint          │
+│  4. Update x, y         ► Move square                       │
+│  5. Bounce detection    ► Handle wall collisions            │
+└─────────────────────────────────────────────────────────────┘</pre>
+                </div>
+            </div>
+
+            <!-- Code Statistics -->
+            <div class="card">
+                <h2>📈 Code Statistics</h2>
+                
+                <div class="constants-grid">
+                    <div class="constant-item">
+                        <strong>Total Lines:</strong> ~150
+                    </div>
+                    <div class="constant-item">
+                        <strong>Class:</strong> 1 (Square)
+                    </div>
+                    <div class="constant-item">
+                        <strong>Methods:</strong> 8
+                    </div>
+                    <div class="constant-item">
+                        <strong>Constants:</strong> 10
+                    </div>
+                    <div class="constant-item">
+                        <strong>Functions:</strong> 1 (main)
+                    </div>
+                    <div class="constant-item">
+                        <strong>Imports:</strong> 3
+                    </div>
+                </div>
+            </div>
+
+            <!-- Design Patterns -->
+            <div class="card">
+                <h2>🎨 Design Patterns</h2>
+                
+                <h3>Object-Oriented Design</h3>
+                <ul class="method-list">
+                    <li><strong>Encapsulation:</strong> Square class encapsulates state and behavior</li>
+                    <li><strong>State Management:</strong> Position, velocity, size are instance attributes</li>
+                    <li><strong>Method Separation:</strong> Concerns separated (jitter, flee, speed limit)</li>
+                </ul>
+                
+                <h3>Behavioral Patterns</h3>
+                <ul class="method-list">
+                    <li><strong>Update Pattern:</strong> move() method orchestrates all behaviors</li>
+                    <li><strong>Rendering Pattern:</strong> draw() method handles visualization</li>
+                    <li><strong>Game Loop:</strong> Standard pygame application structure</li>
+                </ul>
+            </div>
+
+            <!-- Technical Concepts -->
+            <div class="card">
+                <h2>💡 Technical Concepts</h2>
+                
+                <h3>Physics & Mathematics</h3>
+                <ul class="method-list">
+                    <li>Vector operations (dx, dy represent velocity vectors)</li>
+                    <li>Distance calculation using Euclidean geometry</li>
+                    <li>Speed magnitude: speed = √(dx² + dy²)</li>
+                    <li>Angle manipulation: atan2() and cos/sin</li>
+                </ul>
+                
+                <h3>Programming Concepts</h3>
+                <ul class="method-list">
+                    <li>Random number generation for variation</li>
+                    <li>List comprehension for initialization</li>
+                    <li>Frame-based animation timing</li>
+                    <li>Collision detection and response</li>
+                </ul>
+            </div>
+
+            <!-- Future Improvements -->
+            <div class="card section-full">
+                <h2>🚀 Potential Enhancements</h2>
+                
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px;">
+                    <div style="background: #f5f5f5; padding: 15px; border-radius: 6px; border-left: 3px solid #667eea;">
+                        <strong>Spatial Partitioning</strong>
+                        <p style="font-size: 13px; margin-top: 8px; color: #666;">Use quadtrees to reduce flee() complexity from O(n²) to O(n log n)</p>
+                    </div>
+                    
+                    <div style="background: #f5f5f5; padding: 15px; border-radius: 6px; border-left: 3px solid #764ba2;">
+                        <strong>Consumption Mechanic</strong>
+                        <p style="font-size: 13px; margin-top: 8px; color: #666;">Allow larger squares to absorb smaller ones, growing in size</p>
+                    </div>
+                    
+                    <div style="background: #f5f5f5; padding: 15px; border-radius: 6px; border-left: 3px solid #f093fb;">
+                        <strong>User Interaction</strong>
+                        <p style="font-size: 13px; margin-top: 8px; color: #666;">Mouse control for a player square or adding obstacles</p>
+                    </div>
+                    
+                    <div style="background: #f5f5f5; padding: 15px; border-radius: 6px; border-left: 3px solid #4caf50;">
+                        <strong>Advanced Physics</strong>
+                        <p style="font-size: 13px; margin-top: 8px; color: #666;">Add acceleration, friction, or gravity effects</p>
+                    </div>
+                    
+                    <div style="background: #f5f5f5; padding: 15px; border-radius: 6px; border-left: 3px solid #ff9800;">
+                        <strong>Statistics Display</strong>
+                        <p style="font-size: 13px; margin-top: 8px; color: #666;">Show average speed, clustering info, or evolution metrics</p>
+                    </div>
+                    
+                    <div style="background: #f5f5f5; padding: 15px; border-radius: 6px; border-left: 3px solid #2196f3;">
+                        <strong>Save & Replay</strong>
+                        <p style="font-size: 13px; margin-top: 8px; color: #666;">Record and replay square trajectories for analysis</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <footer class="footer">
+            <p>Generated Code Explorer for lab8-pygame | Omar Kahkahni | April 13, 2026</p>
+            <p style="margin-top: 10px; font-size: 13px;">This interactive visualization helps understand the project architecture and design patterns</p>
+        </footer>
+    </div>
+</body>
+</html>

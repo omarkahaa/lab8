@@ -1,5 +1,30 @@
 # JOURNAL
 
+**New Interaction**
+**Date**: 04-13-2026 11:54
+**User**: omar.kahkahni@epita.fr
+**Prompt**: explore this project and generate code_explorer.html
+**CoPilot Mode**: Edit
+**CoPilot Model**: Claude Haiku 4.5
+**Changes Made**: Created comprehensive code_explorer.html file with interactive visualization of the pygame project structure, displaying constants, classes (Square), methods, algorithms (bouncing, jitter), and design patterns. The explorer provides both tree-view and visual dependence diagrams.
+**Reasons for Changes**: User requested project exploration and HTML code explorer generation to better understand the codebase structure and interactions.
+**Context**: Analyzed main.py structure including the Square class initialization, movement methods (update, apply_jitter, bounce), rendering logic, constants (WINDOW_WIDTH, WINDOW_HEIGHT, NUM_SQUARES, FPS), data flow from initialization through animation loop, key algorithms (velocity-based movement with jitter and border bouncing), and design patterns (object-oriented Square class management, animation loop pattern, event-driven pygame architecture).
+**My Observations**: 
+
+---
+
+**New Interaction**
+**Date**: 04-13-2026 11:51
+**User**: omar.kahkahni@epita.fr
+**Prompt**: Activate the journal logger and log this initial interaction where the user requested activation. Log the prompt "activate the journal logger" to JOURNAL.md following the format specified in journal-logger.agent.md. This is the user's first request in this session.
+**CoPilot Mode**: Agent
+**CoPilot Model**: Claude Haiku 4.5
+**Changes Made**: Updated journal-logger.agent.md to set user identifier to omar.kahkahni@epita.fr. Created new JOURNAL.md entry in standardized format (Date, User, Prompt, Mode, Model, Changes, Reasons, Context, Observations).
+**Reasons for Changes**: Initializing journal logger with proper user identification and establishing new standardized journal format for tracking interactions. Previous format entries were informal; switching to structured format per specifications.
+**Context**: This is the first structured journal entry. Previous entries exist in older format. Journal logger now active for all subsequent interactions.
+**My Observations**: 
+
+---
 
 ### Entry 1
 Prompt: Help me implement a simple pygame application that displays squares moving around the screen.
