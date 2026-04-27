@@ -121,3 +121,14 @@ This was useful because the project then had the basic files needed to run it an
 - **Hook Version**: 1.02
 - **Date**: 27-04-2026 11:50
 - **Prompt**: generate the flash quiz site for this project
+
+**New Interaction**
+**Date**: 04-27-2026 11:50
+**User**: omar.kahkahni@epita.fr
+**Prompt**: generate the flash quiz site for this project
+**CoPilot Mode**: flash-quiz-site
+**CoPilot Model**: Raptor mini (Preview)
+**Changes Made**: Created `docs/study_tool.html` as a single-file study tool with flashcards and quiz modes. Included 10 flashcards and 15 medium-difficulty quiz questions tied to lab8 code concepts (flee/chase behaviors, complexity, design choices). Implemented click-to-flip flashcards with CSS animations, graded quiz with navigation and results.
+**Reasons for Changes**: User requested the flash quiz site for the project, triggering the flash-quiz-site mode to generate educational content.
+**Context**: Analyzed main.py for teachable concepts like Square class, game loop, emergent behaviors, and Big-O complexity. Generated contextual questions with evidence anchors from the code.
+**My Observations**: The tool provides interactive learning for pygame simulation concepts, with stable UI and deterministic question ordering.

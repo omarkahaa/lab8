@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project Mastery Study Tool - lab8</title>
+    <style>
+        :root {
+            --bg: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            --surface: rgba(255, 255, 255, 0.9);
+            --text: #333;
+            --accent: #4a90e2;
+            --muted: #666;
+            --radius: 8px;
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        body {
+            font-family: "Avenir Next", "Segoe UI", "Trebuchet MS", sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: var(--bg);
+            background-attachment: fixed;
+            color: var(--text);
+            line-height: 1.6;
+        }
+        main {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .section {
+            margin-bottom: 40px;
+            padding: 20px;
+            background: var(--surface);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+        }
+        h1, h2 {
+            color: var(--accent);
+        }
+        #study-summary {
+            text-align: center;
+        }
+        #mode-switcher {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+        }
+        button {
+            padding: 10px 20px;
+            background: var(--accent);
+            color: white;
+            border: none;
+            border-radius: var(--radius);
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            opacity: 0.9;
+        }
+        #flashcard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        .flashcard {
+            perspective: 1000px;
+            cursor: pointer;
+            height: 200px;
+        }
+        .flashcard-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+        }
+        .flashcard.is-flipped .flashcard-inner {
+            transform: rotateY(180deg);
+        }
+        .flashcard-front, .flashcard-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+            border-radius: var(--radius);
+            padding: 20px;
+            box-shadow: var(--shadow);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            overflow: hidden;
+        }
+        .flashcard-front {
+            background: var(--surface);
+        }
+        .flashcard-back {
+            background: var(--accent);
+            color: white;
+            transform: rotateY(180deg);
+        }
+        .flashcard-front::before {
+            content: "Click to flip";
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            font-size: 12px;
+            color: var(--muted);
+        }
+        #quiz-content {
+            margin-bottom: 20px;
+        }
+        .question {
+            margin-bottom: 20px;
+            padding: 20px;
+            background: var(--surface);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+        }
+        .question h3 {
+            margin-top: 0;
+        }
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .option {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: var(--radius);
+            cursor: pointer;
+        }
+        .option.selected {
+            background: var(--accent);
+            color: white;
+        }
+        .quiz-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        #quiz-results {
+            display: none;
+        }
+        .result-item {
+            margin-bottom: 20px;
+            padding: 20px;
+            background: var(--surface);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+        }
+        .correct {
+            border-left: 5px solid green;
+        }
+        .incorrect {
+            border-left: 5px solid red;
+        }
+        @media (max-width: 768px) {
+            #flashcard-grid {
+                grid-template-columns: 1fr;
+            }
+            .quiz-nav {
+                flex-direction: column;
+                gap: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <main id="app">
+        <section id="study-summary" class="section">
+            <h1>Project Mastery Study Tool - lab8</h1>
+            <p>This tool helps you master the concepts in the lab8 pygame project. The project simulates 100 colored squares with emergent behaviors: fleeing, chasing, jitter, boundary bouncing, and lifetime replacement. Study the flashcards and take the quiz to test your understanding.</p>
+        </section>
+        <section id="mode-switcher" class="section">
+            <button id="flashcard-btn">Flashcards</button>
+            <button id="quiz-btn">Quiz</button>
+        </section>
+        <section id="flashcards" class="section">
+            <h2>Flashcards</h2>
+            <div id="flashcard-grid"></div>
+        </section>
+        <section id="quiz" class="section">
+            <h2>Quiz</h2>
+            <div id="quiz-content"></div>
+            <div class="quiz-nav">
+                <button id="prev-btn" style="display: none;">Previous</button>
+                <span id="question-counter">Question 1 of 15</span>
+                <button id="next-btn">Next</button>
+            </div>
+            <div id="quiz-results"></div>
+        </section>
+    </main>
+    <script>
+        const flashcards = [
+            {
+                front: "What is the purpose of the Square class in main.py?",
+                back: "The Square class encapsulates the state and behavior of each moving square, including position, velocity, size, color, and methods for movement and rendering. (Evidence: class Square: in main.py)"
+            },
+            {
+                front: "How does the flee behavior work?",
+                back: "Smaller squares flee from larger squares within FLEE_DISTANCE by adding force away from the larger square's center. (Evidence: def flee(self, squares): in Square class)"
+            },
+            {
+                front: "What causes squares to change direction slightly each frame?",
+                back: "The apply_jitter method adds random angular noise to the velocity vector. (Evidence: angle += random.uniform(-ANGLE_JITTER, ANGLE_JITTER))"
+            },
+            {
+                front: "How is speed limited for each square?",
+                back: "The limit_speed method clamps the velocity magnitude to not exceed max_speed, which is scaled by size. (Evidence: if speed > self.max_speed: scale = self.max_speed / speed)"
+            },
+            {
+                front: "What happens when a square hits a window boundary?",
+                back: "The square bounces by reversing its velocity component and repositioning to stay inside the window. (Evidence: if self.x <= 0: self.dx *= -1)"
+            },
+            {
+                front: "How does the chase behavior work?",
+                back: "Larger squares chase smaller squares within CHASE_DISTANCE by adding force toward the smaller square's center. (Evidence: def chase(self, squares): in Square class)"
+            },
+            {
+                front: "What is the role of the life_span and age attributes?",
+                back: "Squares have a random lifetime; when age exceeds life_span, the square is replaced with a new one. (Evidence: if squares[i].age >= squares[i].life_span: squares[i] = Square())"
+            },
+            {
+                front: "How is the game loop structured?",
+                back: "The main loop handles events, updates each square's age and position, renders squares and FPS, then flips the display. (Evidence: while running: ... pygame.display.flip())"
+            },
+            {
+                front: "What is the time complexity of the flee and chase methods?",
+                back: "Each method iterates over all squares, so O(N) per square, leading to O(N^2) total for all squares. (Evidence: for other in squares: in flee/chase)"
+            },
+            {
+                front: "Why separate move and draw methods in Square?",
+                back: "Separation of concerns: move handles physics and state updates, draw handles rendering to the screen. (Evidence: def move(self, squares, dt): and def draw(self, screen):)"
+            }
+        ];
+
+        const quizData = [
+            {
+                question: "In the Square class, what happens when a smaller square is within FLEE_DISTANCE of a larger square?",
+                options: ["It moves toward the larger square", "It moves away from the larger square", "It stops moving", "It changes color"],
+                correct: 1,
+                explanation: "Smaller squares flee from larger ones by adding force away from the larger square's center. (Evidence: diff_x = self.center_x() - other.center_x(); self.dx += (diff_x / distance) * FLEE_FORCE)"
+            },
+            {
+                question: "How does the maximum speed of a square relate to its size?",
+                options: ["Larger squares move faster", "Smaller squares move faster", "Speed is independent of size", "All squares move at the same speed"],
+                correct: 0,
+                explanation: "Larger squares have lower max_speed because it's scaled inversely: self.max_speed = GLOBAL_MAX_SPEED * (MIN_SIZE / self.size). (Evidence: self.max_speed = GLOBAL_MAX_SPEED * (MIN_SIZE / self.size))"
+            },
+            {
+                question: "What method adds random directional changes to a square's movement each frame?",
+                options: ["limit_speed", "flee", "apply_jitter", "chase"],
+                correct: 2,
+                explanation: "apply_jitter modifies the angle of the velocity vector with random noise. (Evidence: angle += random.uniform(-ANGLE_JITTER, ANGLE_JITTER))"
+            },
+            {
+                question: "In the chase behavior, which squares pursue others?",
+                options: ["Smaller squares chase larger ones", "Larger squares chase smaller ones", "All squares chase each other", "No squares chase"],
+                correct: 1,
+                explanation: "Larger squares (self.size > other.size) chase smaller ones within CHASE_DISTANCE. (Evidence: if self.size <= other.size: continue)"
+            },
+            {
+                question: "If squares are passing through window boundaries, what is likely wrong?",
+                options: ["FPS is too low", "Boundary checks are missing or incorrect", "Jitter is too high", "Colors are not set"],
+                correct: 1,
+                explanation: "Boundary bouncing requires checking position against WIDTH/HEIGHT and reversing velocity. (Evidence: if self.x + self.size >= WIDTH: self.x = WIDTH - self.size; self.dx *= -1)"
+            },
+            {
+                question: "If squares appear stationary, what could be the issue?",
+                options: ["dx and dy are not updated in move", "Screen is not cleared", "Font is not loaded", "NUM_SQUARES is 0"],
+                correct: 0,
+                explanation: "Movement requires updating self.x += self.dx * dt * FPS. If dx/dy are zero or not applied, squares don't move. (Evidence: self.x += self.dx * dt * FPS)"
+            },
+            {
+                question: "What might cause low FPS in the simulation?",
+                options: ["Too many squares or O(N^2) interactions", "Colors are too bright", "Window is too small", "dt is always 0"],
+                correct: 0,
+                explanation: "With 100 squares, flee/chase are O(N^2), and rendering 100 rectangles can impact performance. (Evidence: for i in range(len(squares)): squares[i].move(squares, dt))"
+            },
+            {
+                question: "Why use a list of Square objects instead of individual variables?",
+                options: ["Easier to manage 100 objects", "Lists are faster than variables", "Variables can't store objects", "For random access"],
+                correct: 0,
+                explanation: "A list allows scalable management of many squares with loops, unlike hardcoded variables. (Evidence: squares: list[Square] = [Square() for _ in range(NUM_SQUARES)])"
+            },
+            {
+                question: "Why separate move() and draw() methods in Square?",
+                options: ["To allow different update/render rates", "Move is physics, draw is graphics", "For code reuse", "To reduce memory"],
+                correct: 1,
+                explanation: "Separation of concerns: move updates state, draw renders to screen. (Evidence: def move(self, squares, dt): ... def draw(self, screen):)"
+            },
+            {
+                question: "Why do squares have random lifetimes?",
+                options: ["To simulate death", "For continuous visual turnover", "To save memory", "For collision detection"],
+                correct: 1,
+                explanation: "Lifetime replacement creates ongoing change without manual intervention. (Evidence: self.life_span = random.uniform(MIN_LIFE, MAX_LIFE))"
+            },
+            {
+                question: "What happens if two squares have exactly the same size?",
+                options: ["They merge", "They flee from each other", "No flee or chase occurs", "They bounce off each other"],
+                correct: 2,
+                explanation: "Flee/chase conditions check self.size > other.size or vice versa; equal sizes trigger neither. (Evidence: if self.size >= other.size: continue in flee)"
+            },
+            {
+                question: "What occurs at window edges during movement?",
+                options: ["Squares teleport to center", "Squares bounce by reversing velocity", "Squares disappear", "Squares slow down"],
+                correct: 1,
+                explanation: "Boundary collision reverses dx/dy and repositions to stay inside. (Evidence: if self.x <= 0: self.x = 0; self.dx *= -1)"
+            },
+            {
+                question: "What if dt (delta time) becomes very large?",
+                options: ["Squares move faster", "Speed limiting prevents excessive movement", "Game crashes", "Colors change"],
+                correct: 1,
+                explanation: "limit_speed() clamps velocity to max_speed, preventing runaway motion. (Evidence: if speed > self.max_speed and speed != 0: scale = self.max_speed / speed)"
+            },
+            {
+                question: "What is the Big-O complexity of the flee method for one square?",
+                options: ["O(1)", "O(N)", "O(N log N)", "O(N^2)"],
+                correct: 1,
+                explanation: "flee iterates over all other squares once, so O(N) per square. (Evidence: for other in squares: if other is self: continue ...)"
+            },
+            {
+                question: "What is the overall time complexity of updating all squares in the main loop?",
+                options: ["O(N)", "O(N log N)", "O(N^2)", "O(1)"],
+                correct: 2,
+                explanation: "Each square's move() calls flee/chase (O(N) each), so total O(N^2). (Evidence: for i in range(len(squares)): squares[i].move(squares, dt))"
+            }
+        ];
+
+        let currentQuestionIndex = 0;
+        let userAnswers = new Array(quizData.length).fill(null);
+        let quizMode = false;
+
+        function initializeQuizDOM() {
+            const quizContent = document.getElementById('quiz-content');
+            quizContent.innerHTML = '';
+            quizData.forEach((q, index) => {
+                const questionDiv = document.createElement('div');
+                questionDiv.className = 'question';
+                questionDiv.id = `q-${index}`;
+                questionDiv.style.display = index === 0 ? 'block' : 'none';
+                questionDiv.innerHTML = `
+                    <h3>${q.question}</h3>
+                    <div class="options">
+                        ${q.options.map((opt, optIndex) => `
+                            <div class="option" data-index="${optIndex}" data-q="${index}">${opt}</div>
+                        `).join('')}
+                    </div>
+                `;
+                quizContent.appendChild(questionDiv);
+            });
+            updateQuizNav();
+        }
+
+        function updateQuizNav() {
+            const prevBtn = document.getElementById('prev-btn');
+            const nextBtn = document.getElementById('next-btn');
+            const counter = document.getElementById('question-counter');
+            counter.textContent = `Question ${currentQuestionIndex + 1} of ${quizData.length}`;
+            prevBtn.style.display = currentQuestionIndex > 0 ? 'inline-block' : 'none';
+            nextBtn.textContent = currentQuestionIndex === quizData.length - 1 ? 'Submit' : 'Next';
+        }
+
+        function showQuestion(index) {
+            document.querySelectorAll('.question').forEach((q, i) => {
+                q.style.display = i === index ? 'block' : 'none';
+            });
+            updateQuizNav();
+        }
+
+        function renderFlashcards() {
+            const grid = document.getElementById('flashcard-grid');
+            grid.innerHTML = '';
+            flashcards.forEach(card => {
+                const cardDiv = document.createElement('div');
+                cardDiv.className = 'flashcard';
+                cardDiv.innerHTML = `
+                    <div class="flashcard-inner">
+                        <div class="flashcard-front">
+                            <div>${card.front}</div>
+                        </div>
+                        <div class="flashcard-back">
+                            <div>${card.back}</div>
+                        </div>
+                    </div>
+                `;
+                cardDiv.addEventListener('click', () => {
+                    cardDiv.classList.toggle('is-flipped');
+                });
+                cardDiv.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        cardDiv.classList.toggle('is-flipped');
+                    }
+                });
+                cardDiv.tabIndex = 0;
+                grid.appendChild(cardDiv);
+            });
+        }
+
+        function showResults() {
+            const resultsDiv = document.getElementById('quiz-results');
+            const quizContent = document.getElementById('quiz-content');
+            const nav = document.querySelector('.quiz-nav');
+            quizContent.style.display = 'none';
+            nav.style.display = 'none';
+            resultsDiv.style.display = 'block';
+            let score = 0;
+            const resultItems = quizData.map((q, index) => {
+                const userAnswer = userAnswers[index];
+                const isCorrect = userAnswer === q.correct;
+                if (isCorrect) score++;
+                return `
+                    <div class="result-item ${isCorrect ? 'correct' : 'incorrect'}">
+                        <h4>Question ${index + 1}</h4>
+                        <p><strong>Your answer:</strong> ${userAnswer !== null ? q.options[userAnswer] : 'Not answered'}</p>
+                        <p><strong>Correct answer:</strong> ${q.options[q.correct]}</p>
+                        <p><strong>Explanation:</strong> ${q.explanation}</p>
+                    </div>
+                `;
+            }).join('');
+            resultsDiv.innerHTML = `<h3>Your Score: ${score} / ${quizData.length}</h3>${resultItems}`;
+        }
+
+        function validateDOM() {
+            const required = ['quiz-content', 'quiz-nav', 'quiz-results'];
+            required.forEach(id => {
+                if (!document.getElementById(id)) {
+                    console.error(`Missing required element: #${id}`);
+                }
+            });
+            if (!document.querySelector('.flashcard')) {
+                console.error('No flashcards found');
+            }
+            quizData.forEach((_, index) => {
+                if (!document.getElementById(`q-${index}`)) {
+                    console.error(`Missing question node: #q-${index}`);
+                }
+            });
+        }
+
+        document.getElementById('flashcard-btn').addEventListener('click', () => {
+            document.getElementById('flashcards').style.display = 'block';
+            document.getElementById('quiz').style.display = 'none';
+            quizMode = false;
+            renderFlashcards();
+        });
+
+        document.getElementById('quiz-btn').addEventListener('click', () => {
+            document.getElementById('flashcards').style.display = 'none';
+            document.getElementById('quiz').style.display = 'block';
+            quizMode = true;
+            if (!document.querySelector('.question')) {
+                initializeQuizDOM();
+            }
+            showQuestion(currentQuestionIndex);
+        });
+
+        document.getElementById('next-btn').addEventListener('click', () => {
+            if (currentQuestionIndex < quizData.length - 1) {
+                currentQuestionIndex++;
+                showQuestion(currentQuestionIndex);
+            } else {
+                showResults();
+            }
+        });
+
+        document.getElementById('prev-btn').addEventListener('click', () => {
+            if (currentQuestionIndex > 0) {
+                currentQuestionIndex--;
+                showQuestion(currentQuestionIndex);
+            }
+        });
+
+        document.addEventListener('click', (e) => {
+            if (e.target.classList.contains('option')) {
+                const qIndex = parseInt(e.target.dataset.q);
+                const optIndex = parseInt(e.target.dataset.index);
+                userAnswers[qIndex] = optIndex;
+                document.querySelectorAll(`[data-q="${qIndex}"]`).forEach(opt => opt.classList.remove('selected'));
+                e.target.classList.add('selected');
+            }
+        });
+
+        // Initial render
+        renderFlashcards();
+        validateDOM();
+    </script>
+</body>
+</html>
