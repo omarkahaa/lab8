@@ -60,6 +60,25 @@ class Square:
     def center_y(self) -> float:
         return self.y + self.size / 2
 
+    def check_collision(self, other: "Square") -> bool:
+        my_rect = pygame.Rect(self.x, self.y, self.size, self.size)
+        other_rect = pygame.Rect(other.x, other.y, other.size, other.size)
+
+        return my_rect.colliderect(other_rect)
+
+    def eat(self, squares: list["Square"]) -> None:
+        for i in range(len(squares)):
+            other = squares[i]
+
+            if other is self:
+                continue
+
+            if self.size <= other.size:
+                continue
+
+            if self.check_collision(other):
+                squares[i] = Square(other.size)
+
     def apply_jitter(self) -> None:
         speed = math.hypot(self.dx, self.dy)
         angle = math.atan2(self.dy, self.dx)
@@ -186,6 +205,7 @@ def main() -> None:
                 squares[i] = Square(squares[i].size)
 
             squares[i].move(squares, dt)
+            squares[i].eat(squares)
             squares[i].draw(screen)
 
         fps_text = font.render(f"FPS: {int(clock.get_fps())}", True, (0, 0, 0))
@@ -198,3 +218,4 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+    
