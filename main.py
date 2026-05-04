@@ -1,3 +1,4 @@
+
 import math
 import random
 
@@ -9,6 +10,9 @@ HEIGHT = 600
 BIG_SQUARES = 5
 MEDIUM_SQUARES = 10
 SMALL_SQUARES = 30
+
+GROWTH_RATE = 0.5
+MAX_SIZE = 70
 
 BIG_SIZE = 25
 MEDIUM_SIZE = 10
@@ -33,7 +37,7 @@ MIN_BRIGHTNESS = 0.25
 
 
 class Square:
-    def __init__(self, size: int) -> None:
+    def __init__(self, size: float) -> None:
         self.size = size
         self.x = random.uniform(0, WIDTH - self.size)
         self.y = random.uniform(0, HEIGHT - self.size)
@@ -61,8 +65,19 @@ class Square:
         return self.y + self.size / 2
 
     def check_collision(self, other: "Square") -> bool:
-        my_rect = pygame.Rect(self.x, self.y, self.size, self.size)
-        other_rect = pygame.Rect(other.x, other.y, other.size, other.size)
+        my_rect = pygame.Rect(
+            int(self.x),
+            int(self.y),
+            int(self.size),
+            int(self.size),
+        )
+
+        other_rect = pygame.Rect(
+            int(other.x),
+            int(other.y),
+            int(other.size),
+            int(other.size),
+        )
 
         return my_rect.colliderect(other_rect)
 
@@ -77,6 +92,20 @@ class Square:
                 continue
 
             if self.check_collision(other):
+                old_center_x = self.center_x()
+                old_center_y = self.center_y()
+
+                growth = other.size * GROWTH_RATE
+                self.size = min(MAX_SIZE, self.size + growth)
+
+                self.x = old_center_x - self.size / 2
+                self.y = old_center_y - self.size / 2
+
+                self.x = max(0, min(self.x, WIDTH - self.size))
+                self.y = max(0, min(self.y, HEIGHT - self.size))
+
+                self.max_speed = GLOBAL_MAX_SPEED * (MIN_SIZE / self.size)
+                self.limit_speed()
                 squares[i] = Square(other.size)
 
     def apply_jitter(self) -> None:
@@ -88,6 +117,7 @@ class Square:
 
     def limit_speed(self) -> None:
         speed = math.hypot(self.dx, self.dy)
+
         if speed > self.max_speed and speed != 0:
             scale = self.max_speed / speed
             self.dx *= scale
@@ -97,6 +127,7 @@ class Square:
         for other in squares:
             if other is self:
                 continue
+
             if self.size >= other.size:
                 continue
 
@@ -112,6 +143,7 @@ class Square:
         for other in squares:
             if other is self:
                 continue
+
             if self.size <= other.size:
                 continue
 
@@ -119,16 +151,9 @@ class Square:
             diff_y = other.center_y() - self.center_y()
             distance = math.hypot(diff_x, diff_y)
 
-            if distance < CHASE_DISTANCE:
-                if diff_x > 0:
-                    self.dx += CHASE_FORCE
-                else:
-                    self.dx -= CHASE_FORCE
-
-                if diff_y > 0:
-                    self.dy += CHASE_FORCE
-                else:
-                    self.dy -= CHASE_FORCE
+            if 0 < distance < CHASE_DISTANCE:
+                self.dx += (diff_x / distance) * CHASE_FORCE
+                self.dy += (diff_y / distance) * CHASE_FORCE
 
     def move(self, squares: list["Square"], dt: float) -> None:
         self.apply_jitter()
@@ -166,14 +191,21 @@ class Square:
         pygame.draw.rect(
             screen,
             (red, green, blue),
-            (int(self.x), int(self.y), self.size, self.size),
+            (
+                int(self.x),
+                int(self.y),
+                int(self.size),
+                int(self.size),
+            ),
         )
 
 
 def main() -> None:
     pygame.init()
+
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
     pygame.display.set_caption("Moving Squares")
+
     clock = pygame.time.Clock()
     font = pygame.font.SysFont(None, 30)
 
@@ -189,6 +221,7 @@ def main() -> None:
         squares.append(Square(SMALL_SIZE))
 
     running = True
+
     while running:
         dt = clock.tick(FPS) / 1000.0
 
@@ -218,4 +251,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-    
