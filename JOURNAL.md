@@ -163,3 +163,14 @@ This was useful because the project then had the basic files needed to run it an
 - **Hook Version**: 1.02
 - **Date**: 27-04-2026 12:07
 - **Prompt**: Apply the refactoring plan from refactoring-plan.md to main_refactored.py only. Do not modify main.py.
+
+**New Interaction**
+**Date**: 04-27-2026 12:07
+**User**: omar.kahkahni@epita.fr
+**Prompt**: Apply the refactoring plan from refactoring-plan.md to main_refactored.py only. Do not modify main.py.
+**CoPilot Mode**: Edit
+**CoPilot Model**: Raptor mini (Preview)
+**Changes Made**: Applied the 5-step refactoring plan to `main_refactored.py`: added type hints and docstrings to all methods/classes, extracted boundary checking into `_check_boundaries()`, renamed variables in `chase()` for clarity, and grouped constants with comments. Validated with syntax check and brief runtime test.
+**Reasons for Changes**: User requested application of the refactoring plan to improve code quality without altering the original `main.py`.
+**Context**: Incremental changes focused on readability, maintainability, and Python best practices for first-year students.
+**My Observations**: Refactored code maintains original behavior; syntax validation passed, and quick test confirmed functionality.
