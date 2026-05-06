@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Moving Squares</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+            font-family: Arial, sans-serif;
+        }
+        
+        canvas {
+            border: 2px solid #333;
+            background-color: white;
+        }
+        
+        #info {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="gameCanvas"></canvas>
+    <div id="info"></div>
+
+    <script>
+        // ========== CONSTANTS ==========
+        const WIDTH = 800;
+        const HEIGHT = 600;
+
+        const BIG_SQUARES = 5;
+        const MEDIUM_SQUARES = 10;
+        const SMALL_SQUARES = 30;
+
+        const GROWTH_RATE = 0.5;
+        const MAX_SIZE = 70;
+
+        const BIG_SIZE = 25;
+        const MEDIUM_SIZE = 10;
+        const SMALL_SIZE = 4;
+
+        const MIN_SIZE = SMALL_SIZE;
+        const GLOBAL_MAX_SPEED = 6;
+        const ANGLE_JITTER = 0.15;
+        const BACKGROUND_COLOR = "rgb(255, 255, 255)";
+        const FPS = 60;
+
+        const FLEE_DISTANCE = 100;
+        const FLEE_FORCE = 0.2;
+
+        const CHASE_DISTANCE = 100;
+        const CHASE_FORCE = 0.08;
+
+        const MIN_LIFE = 3;
+        const MAX_LIFE = 9;
+
+        const MIN_BRIGHTNESS = 0.25;
+
+        // ========== UTILITY FUNCTIONS ==========
+        
+        /**
+         * Generate random number between min and max (inclusive)
+         * Equivalent to Python: random.uniform(min, max)
+         */
+        function uniformRandom(min, max) {
+            return Math.random() * (max - min) + min;
+        }
+
+        /**
+         * Generate random integer between min and max (inclusive)
+         * Equivalent to Python: random.randint(min, max)
+         */
+        function randomInt(min, max) {
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+
+        /**
+         * Calculate distance using Pythagorean theorem
+         * Equivalent to Python: math.hypot(dx, dy)
+         */
+        function hypot(dx, dy) {
+            return Math.hypot(dx, dy);
+        }
+
+        // ========== SQUARE CLASS ==========
+        
+        class Square {
+            /**
+             * Initialize a new square with random position, velocity, color, and lifespan
+             * Equivalent to Python: Square.__init__(size: float)
+             */
+            constructor(size) {
+                this.size = size;
+                this.x = Math.random() * (WIDTH - this.size);
+                this.y = Math.random() * (HEIGHT - this.size);
+
+                this.maxSpeed = GLOBAL_MAX_SPEED * (MIN_SIZE / this.size);
+
+                // Random angle and speed for initial velocity
+                const angle = uniformRandom(0, 2 * Math.PI);
+                const speed = uniformRandom(1, this.maxSpeed);
+                this.dx = Math.cos(angle) * speed;
+                this.dy = Math.sin(angle) * speed;
+
+                // Random color
+                this.color = {
+                    r: randomInt(50, 255),
+                    g: randomInt(50, 255),
+                    b: randomInt(50, 255)
+                };
+
+                this.lifeSpan = uniformRandom(MIN_LIFE, MAX_LIFE);
+                this.age = 0.0;
+            }
+
+            /**
+             * Get center X coordinate
+             * Equivalent to Python: center_x()
+             */
+            centerX() {
+                return this.x + this.size / 2;
+            }
+
+            /**
+             * Get center Y coordinate
+             * Equivalent to Python: center_y()
+             */
+            centerY() {
+                return this.y + this.size / 2;
+            }
+
+            /**
+             * Check if this square collides with another square
+             * Uses AABB (Axis-Aligned Bounding Box) collision detection
+             * Equivalent to Python: check_collision(other: Square) -> bool
+             */
+            checkCollision(other) {
+                // AABB collision: rectangles overlap iff NOT separated on any axis
+                return !(this.x + this.size <= other.x ||
+                         other.x + other.size <= this.x ||
+                         this.y + this.size <= other.y ||
+                         other.y + other.size <= this.y);
+            }
+
+            /**
+             * Consume smaller colliding squares and grow
+             * Equivalent to Python: eat(squares: list[Square])
+             */
+            eat(squares) {
+                for (let i = 0; i < squares.length; i++) {
+                    const other = squares[i];
+
+                    // Skip self
+                    if (other === this) {
+                        continue;
+                    }
+
+                    // Only eat smaller squares
+                    if (this.size <= other.size) {
+                        continue;
+                    }
+
+                    // Check collision
+                    if (this.checkCollision(other)) {
+                        // Preserve center position during growth
+                        const oldCenterX = this.centerX();
+                        const oldCenterY = this.centerY();
+
+                        // Grow this square
+                        const growth = other.size * GROWTH_RATE;
+                        this.size = Math.min(MAX_SIZE, this.size + growth);
+
+                        // Re-center after growth
+                        this.x = oldCenterX - this.size / 2;
+                        this.y = oldCenterY - this.size / 2;
+
+                        // Clamp to bounds
+                        this.x = Math.max(0, Math.min(this.x, WIDTH - this.size));
+                        this.y = Math.max(0, Math.min(this.y, HEIGHT - this.size));
+
+                        // Update max speed for new size
+                        this.maxSpeed = GLOBAL_MAX_SPEED * (MIN_SIZE / this.size);
+                        this.limitSpeed();
+
+                        // Replace eaten square with new one at same size
+                        squares[i] = new Square(other.size);
+                    }
+                }
+            }
+
+            /**
+             * Apply random angle jitter to velocity
+             * Equivalent to Python: apply_jitter()
+             */
+            applyJitter() {
+                const speed = hypot(this.dx, this.dy);
+                const angle = Math.atan2(this.dy, this.dx);
+                const newAngle = angle + uniformRandom(-ANGLE_JITTER, ANGLE_JITTER);
+                this.dx = Math.cos(newAngle) * speed;
+                this.dy = Math.sin(newAngle) * speed;
+            }
+
+            /**
+             * Limit velocity magnitude to max_speed
+             * Equivalent to Python: limit_speed()
+             */
+            limitSpeed() {
+                const speed = hypot(this.dx, this.dy);
+
+                if (speed > this.maxSpeed && speed !== 0) {
+                    const scale = this.maxSpeed / speed;
+                    this.dx *= scale;
+                    this.dy *= scale;
+                }
+            }
+
+            /**
+             * Flee from larger nearby squares
+             * Equivalent to Python: flee(squares: list[Square])
+             */
+            flee(squares) {
+                for (const other of squares) {
+                    if (other === this) {
+                        continue;
+                    }
+
+                    if (this.size >= other.size) {
+                        continue;
+                    }
+
+                    const diffX = this.centerX() - other.centerX();
+                    const diffY = this.centerY() - other.centerY();
+                    const distance = hypot(diffX, diffY);
+
+                    if (0 < distance && distance < FLEE_DISTANCE) {
+                        this.dx += (diffX / distance) * FLEE_FORCE;
+                        this.dy += (diffY / distance) * FLEE_FORCE;
+                    }
+                }
+            }
+
+            /**
+             * Chase smaller nearby squares
+             * Equivalent to Python: chase(squares: list[Square])
+             */
+            chase(squares) {
+                for (const other of squares) {
+                    if (other === this) {
+                        continue;
+                    }
+
+                    if (this.size <= other.size) {
+                        continue;
+                    }
+
+                    const diffX = other.centerX() - this.centerX();
+                    const diffY = other.centerY() - this.centerY();
+                    const distance = hypot(diffX, diffY);
+
+                    if (0 < distance && distance < CHASE_DISTANCE) {
+                        this.dx += (diffX / distance) * CHASE_FORCE;
+                        this.dy += (diffY / distance) * CHASE_FORCE;
+                    }
+                }
+            }
+
+            /**
+             * Update position and handle physics for this frame
+             * Equivalent to Python: move(squares: list[Square], dt: float)
+             */
+            move(squares, dt) {
+                // Apply behavioral forces
+                this.applyJitter();
+                this.flee(squares);
+                this.chase(squares);
+                this.limitSpeed();
+
+                // Update position (dt is in seconds)
+                this.x += this.dx * dt * FPS;
+                this.y += this.dy * dt * FPS;
+
+                // Handle boundary collisions with bounce
+                if (this.x <= 0) {
+                    this.x = 0;
+                    this.dx *= -1;
+                } else if (this.x + this.size >= WIDTH) {
+                    this.x = WIDTH - this.size;
+                    this.dx *= -1;
+                }
+
+                if (this.y <= 0) {
+                    this.y = 0;
+                    this.dy *= -1;
+                } else if (this.y + this.size >= HEIGHT) {
+                    this.y = HEIGHT - this.size;
+                    this.dy *= -1;
+                }
+            }
+
+            /**
+             * Render this square to canvas with brightness-adjusted color
+             * Equivalent to Python: draw(screen: pygame.Surface)
+             */
+            draw(ctx) {
+                // Calculate brightness based on age (squares fade as they age)
+                let brightness = 1 - (this.age / this.lifeSpan);
+
+                if (brightness < MIN_BRIGHTNESS) {
+                    brightness = MIN_BRIGHTNESS;
+                }
+
+                // Apply brightness to color
+                const red = Math.floor(this.color.r * brightness);
+                const green = Math.floor(this.color.g * brightness);
+                const blue = Math.floor(this.color.b * brightness);
+
+                // Render filled rectangle
+                ctx.fillStyle = `rgb(${red}, ${green}, ${blue})`;
+                ctx.fillRect(
+                    Math.floor(this.x),
+                    Math.floor(this.y),
+                    Math.floor(this.size),
+                    Math.floor(this.size)
+                );
+            }
+        }
+
+        // ========== GAME LOOP ==========
+        
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Set canvas dimensions
+        canvas.width = WIDTH;
+        canvas.height = HEIGHT;
+
+        // Initialize game state
+        let squares = [];
+
+        // Create initial squares
+        for (let i = 0; i < BIG_SQUARES; i++) {
+            squares.push(new Square(BIG_SIZE));
+        }
+
+        for (let i = 0; i < MEDIUM_SQUARES; i++) {
+            squares.push(new Square(MEDIUM_SIZE));
+        }
+
+        for (let i = 0; i < SMALL_SQUARES; i++) {
+            squares.push(new Square(SMALL_SIZE));
+        }
+
+        // Frame timing
+        let lastTime = performance.now();
+        let frameCount = 0;
+        let fpsTimer = 0;
+        let currentFps = 0;
+
+        /**
+         * Main animation loop
+         * Equivalent to Python: main() game loop
+         * Renders frame, updates physics, handles aging and regeneration
+         */
+        function animate(currentTime) {
+            // Calculate delta time in seconds
+            const deltaTime = (currentTime - lastTime) / 1000.0;
+            lastTime = currentTime;
+
+            // Update FPS counter
+            frameCount++;
+            fpsTimer += deltaTime;
+            if (fpsTimer >= 0.5) {
+                currentFps = Math.round(frameCount / fpsTimer);
+                frameCount = 0;
+                fpsTimer = 0;
+            }
+
+            // Clear canvas to background color
+            ctx.fillStyle = BACKGROUND_COLOR;
+            ctx.fillRect(0, 0, WIDTH, HEIGHT);
+
+            // Update and render all squares
+            for (let i = 0; i < squares.length; i++) {
+                const square = squares[i];
+
+                // Age the square
+                square.age += deltaTime;
+
+                // Regenerate if lifespan exceeded
+                if (square.age >= square.lifeSpan) {
+                    squares[i] = new Square(square.size);
+                } else {
+                    // Update physics and collision
+                    square.move(squares, deltaTime);
+                    square.eat(squares);
+                    square.draw(ctx);
+                }
+            }
+
+            // Render FPS counter
+            ctx.font = "30px Arial";
+            ctx.fillStyle = "rgb(0, 0, 0)";
+            ctx.fillText(`FPS: ${currentFps}`, 10, 30);
+
+            // Continue loop
+            requestAnimationFrame(animate);
+        }
+
+        // Start animation loop
+        requestAnimationFrame(animate);
+    </script>
+</body>
+</html>
